@@ -1,5 +1,6 @@
 import errno
 import logging
+import operator
 import random
 import time
 
@@ -26,6 +27,7 @@ class ZmqRPCServer(Component):
         super(ZmqRPCServer, self).__init__(pool=pool)
         self.ip = ip
         self.port = port
+        self._pick_count = 0
 
         self.zctx = zmq.Context.instance()
         self.endpoint = None
@@ -142,7 +144,7 @@ class ZmqRPCServer(Component):
     def _pick_instance(self, service):
         service.observe(services.REMOVED, self._on_service_instance_unavailable)
         choices = []
-        for instance in service:
+        for instance in sorted(service, key=operator.attrgetter('endpoint')):
             try:
                 connection = self.connections[instance.endpoint]
             except KeyError:
@@ -152,7 +154,9 @@ class ZmqRPCServer(Component):
                 choices.append(instance)
         if not choices:
             raise NotConnected('Not connected to %s' % service)
-        return random.choice(choices)
+        choice_index = self._pick_count % len(choices)
+        self._pick_count += 1
+        return choices[choice_index]
 
     def send_request(self, service, subject, body, headers=None):
         if isinstance(service, InstanceSet):

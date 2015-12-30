@@ -35,7 +35,7 @@ class RoundRobinTest(LymphIntegrationTestCase):
         request_count = 7
         sorted_endpoints = sorted(self.endpoints)
         expected_order = (
-            (request_count / self.instance_count) * sorted_endpoints +
+            (request_count // self.instance_count) * sorted_endpoints +
             sorted_endpoints[:(request_count % self.instance_count)]
         )
         actual_order = [self.lymph_client.request('foo', 'foo.foo', {}).source for i in range(request_count)]

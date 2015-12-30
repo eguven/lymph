@@ -1,5 +1,6 @@
 from lymph.core.decorators import rpc
 from lymph.core.interfaces import Interface
+from lymph.events.null import NullEventSystem
 from lymph.testing import LymphIntegrationTestCase
 
 
@@ -16,6 +17,7 @@ class RoundRobinTest(LymphIntegrationTestCase):
 
     def setUp(self):
         super(RoundRobinTest, self).setUp()
+        self.events = NullEventSystem()
 
         self.instance_count = 3
         self.endpoints = [self.create_container(Foo, 'foo')[0].endpoint for i in range(self.instance_count)]

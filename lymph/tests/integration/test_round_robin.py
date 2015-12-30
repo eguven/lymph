@@ -1,5 +1,9 @@
+from kazoo.client import KazooClient
+from kazoo.handlers.gevent import SequentialGeventHandler
+
 from lymph.core.decorators import rpc
 from lymph.core.interfaces import Interface
+from lymph.discovery.zookeeper import ZookeeperServiceRegistry
 from lymph.events.null import NullEventSystem
 from lymph.testing import LymphIntegrationTestCase
 
@@ -22,6 +26,10 @@ class RoundRobinTest(LymphIntegrationTestCase):
         self.instance_count = 3
         self.endpoints = [self.create_container(Foo, 'foo')[0].endpoint for i in range(self.instance_count)]
         self.lymph_client = self.create_client()
+
+    def create_registry(self, **kwargs):
+        zkclient = KazooClient(self.hosts, handler=SequentialGeventHandler())
+        return ZookeeperServiceRegistry(zkclient)
 
     def test_pick_instance_round_robin(self):
         request_count = 7
